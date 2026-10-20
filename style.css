@@ -7,7 +7,6 @@ body {
   font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
   font-size: 15px;
   line-height: 1.6;
-  /* ใช้ตัวแปรสี (Default: Pastel) */
   background: var(--bg-gradient);
   background-attachment: fixed;
   color: var(--text-main);
@@ -22,7 +21,7 @@ h1 { font-size: 24px; font-weight: 700; color: var(--text-heading); text-align: 
 h2 { font-size: 18px; font-weight: 600; color: var(--text-heading); margin: 24px 0 12px; }
 
 /* =========================================
-   Theme Definitions (ตัวกำหนดสีของแต่ละธีม)
+   Theme Definitions
 ========================================= */
 /* 1. Pastel (สว่าง นุ่มนวล) */
 :root, [data-theme="pastel"] {
@@ -68,7 +67,7 @@ h2 { font-size: 18px; font-weight: 600; color: var(--text-heading); margin: 24px
   --hr-color: #333333;
 }
 
-/* 3. Ocean (น้ำเงินเข้ม ล้ำสมัย) */
+/* 3. Ocean (น้ำเงินเข้ม) */
 [data-theme="ocean"] {
   --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
   --text-main: #cbd5e1;
@@ -90,7 +89,7 @@ h2 { font-size: 18px; font-weight: 600; color: var(--text-heading); margin: 24px
   --hr-color: #334155;
 }
 
-/* 4. Forest (เขียวธรรมชาติ ผ่อนคลาย) */
+/* 4. Forest (เขียวธรรมชาติ) */
 [data-theme="forest"] {
   --bg-gradient: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
   --text-main: #064e3b;
@@ -125,6 +124,25 @@ h2 { font-size: 18px; font-weight: 600; color: var(--text-heading); margin: 24px
   -webkit-backdrop-filter: blur(10px);
   box-shadow: var(--box-shadow);
   transition: background 0.4s, border-color 0.4s;
+}
+
+/* =========================================
+   Theme Selector (บังคับให้แสดงผล)
+========================================= */
+#themeSelector {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--btn-border);
+  background: var(--btn-bg);
+  color: var(--btn-text);
+  font-family: inherit;
+  font-size: 14px;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.3s;
+}
+#themeSelector:hover {
+  background: var(--btn-hover);
 }
 
 /* =========================================
@@ -209,7 +227,6 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
 hr { border: none; border-top: 1px solid var(--hr-color); margin: 24px 0; }
 .hidden { display: none; }
 
-/* ปุ่ม จำได้ / ไม่แม่น */
 #controls button[onclick="prevCard()"] { background: var(--btn-bg); color: var(--text-main); border: 1px solid var(--btn-border); }
 .btn-wrong { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
 .btn-correct { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
