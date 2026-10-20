@@ -203,11 +203,6 @@ function startReviewWeak() {
   selectMode('weak');
 }
 
-function startSession(topic, mode) {
-  state.currentTopic = topic;
-  playMode(mode);
-}
-
 function startWithList(list) {
   state.currentList = list; state.index = 0; state.weakCards = []; state.isFlipped = false;
   if (state.mode === 'flashcard') { showPage('flashcard'); renderCard(); }
@@ -427,7 +422,22 @@ function resetProgress() {
 }
 
 // =========================================================
-//  Theme Logic
+//  Theme Logic (โหลดและเปลี่ยนธีม)
 // =========================================================
 function changeTheme(themeName) {
-  document.document
+  document.documentElement.setAttribute('data-theme', themeName);
+  localStorage.setItem('fundcom_theme', themeName);
+}
+
+function loadTheme() {
+  const savedTheme = localStorage.getItem('fundcom_theme') || 'pastel';
+  document.documentElement.setAttribute('data-theme', savedTheme);
+  document.getElementById('themeSelector').value = savedTheme;
+}
+
+// =========================================================
+loadTheme();
+renderHome();
+</script>
+</body>
+</html>
