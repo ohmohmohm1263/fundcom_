@@ -5,40 +5,21 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>FundCom - ทบทวนข้อสอบ</title>
 <link rel="stylesheet" href="style.css">
-<style>
-  /* CSS เพิ่มเติมสำหรับโหมด Choice และ Matching */
-  .mode-btns { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
-  .mode-btn { flex: 1; min-width: 120px; padding: 15px 10px; font-size: 16px; font-weight: bold; border-radius: 8px; background: #222; border: 1px solid #555; cursor: pointer; text-align: center; }
-  .mode-btn:hover { background: #333; }
-  
-  /* สำหรับโหมด Choice */
-  .choice-btn { display: block; width: 100%; text-align: left; padding: 12px 15px; margin: 8px 0; background: #1a1a1a; border: 1px solid #333; border-radius: 6px; cursor: pointer; color: #e8e8e8; font-size: 15px; transition: 0.2s; }
-  .choice-btn:hover:not(:disabled) { background: #262626; }
-  .choice-btn.correct { background: #1a3a1a; border-color: #4caf50; color: #b8f0b8; }
-  .choice-btn.wrong { background: #3a1a1a; border-color: #e53935; color: #f0b8b8; }
-  
-  /* สำหรับโหมด Matching */
-  .match-container { display: flex; gap: 15px; margin-top: 15px; }
-  .match-col { flex: 1; display: flex; flex-direction: column; gap: 10px; }
-  .match-item { padding: 12px; background: #1a1a1a; border: 1px solid #333; border-radius: 6px; cursor: pointer; text-align: center; transition: 0.2s; font-size: 14px; }
-  .match-item:hover:not(.matched) { background: #262626; }
-  .match-item.selected { border-color: #2196f3; background: #1a263a; }
-  .match-item.matched { opacity: 0.3; pointer-events: none; background: #1a3a1a; border-color: #4caf50; }
-</style>
 </head>
 <body>
 
 <!-- ========== หน้าแรก ========== -->
 <div id="home">
-    <!-- แถบเลือกธีม -->
+  <!-- แถบเลือกธีม -->
   <div style="text-align: right; margin-bottom: 10px;">
-    <select id="themeSelector" onchange="changeTheme(this.value)" style="padding: 8px; border-radius: 8px; border: 1px solid var(--btn-border); background: var(--btn-bg); color: var(--btn-text); font-family: inherit; font-size: 14px; cursor: pointer;">
+    <select id="themeSelector" onchange="changeTheme(this.value)">
       <option value="pastel">🌸 Pastel (สว่าง)</option>
       <option value="dark">🌙 Dark (มืด)</option>
       <option value="ocean">🌊 Ocean (น้ำเงิน)</option>
       <option value="forest">🌿 Forest (เขียว)</option>
     </select>
   </div>
+
   <h1>📚 FundCom Flashcards</h1>
   <p class="small">ทบทวนข้อสอบ Fundamental of Computer Science</p>
 
@@ -58,10 +39,10 @@
   <h1 id="modeSelectTitle">เลือกโหมดการเล่น</h1>
   <p class="small" id="modeSelectTopic"></p>
   
-  <div class="mode-btns">
-    <button class="mode-btn" onclick="playMode('flashcard')">🎴 แฟลชการ์ด<br><span class="small">(จำคำถาม-คำตอบ)</span></button>
-    <button class="mode-btn" onclick="playMode('choice')">📝 ปรนัย<br><span class="small">(เลือกคำตอบที่ถูก)</span></button>
-    <button class="mode-btn" onclick="playMode('matching')">🧩 จับคู่<br><span class="small">(เล่นทีละ 4 ข้อ)</span></button>
+  <div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
+    <button class="mode-btn" style="flex: 1; min-width: 120px; padding: 15px 10px; font-size: 16px; font-weight: bold;" onclick="playMode('flashcard')">🎴 แฟลชการ์ด<br><span class="small">(จำคำถาม-คำตอบ)</span></button>
+    <button class="mode-btn" style="flex: 1; min-width: 120px; padding: 15px 10px; font-size: 16px; font-weight: bold;" onclick="playMode('choice')">📝 ปรนัย<br><span class="small">(เลือกคำตอบที่ถูก)</span></button>
+    <button class="mode-btn" style="flex: 1; min-width: 120px; padding: 15px 10px; font-size: 16px; font-weight: bold;" onclick="playMode('matching')">🧩 จับคู่<br><span class="small">(เล่นทีละ 4 ข้อ)</span></button>
   </div>
   
   <button onclick="goHome()">← กลับหน้าแรก</button>
@@ -91,7 +72,7 @@
 
   <hr>
   <div id="controls" class="hidden">
-    <button onclick="prevCard()" style="width: 100%; margin-bottom: 10px; background: #333; color: #fff; border: 1px solid #555; font-weight: bold;">← ข้อก่อนหน้า</button>
+    <button onclick="prevCard()" style="width: 100%; margin-bottom: 10px;">← ข้อก่อนหน้า</button>
     <div style="display: flex; gap: 10px;">
       <button class="btn-wrong" onclick="markCard(false)" style="flex: 1;">❌ ยังไม่แม่น</button>
       <button class="btn-correct" onclick="markCard(true)" style="flex: 1;">✅ จำได้</button>
@@ -146,7 +127,7 @@
 const LS_WEAK = 'fundcom_weak_cards';
 let state = {
   currentList: [], index: 0, isFlipped: false, weakCards: [],
-  mode: 'flashcard', // 'flashcard', 'choice', 'matching'
+  mode: 'flashcard', 
   matchBatch: [], matchSelectedLeft: null, matchSelectedRight: null, matchCorrectCount: 0
 };
 
@@ -283,7 +264,7 @@ function prevCard() {
 function renderChoice() {
   if (state.index >= state.currentList.length) { showResult(); return; }
   const q = QUESTIONS[state.currentList[state.index]];
-  state.isFlipped = false; // used as answered flag
+  state.isFlipped = false; 
   state.selectedAnswer = null;
 
   document.getElementById('choiceProgress').textContent = `ข้อที่ ${state.index + 1} / ${state.currentList.length} · ${q.topic}`;
@@ -304,7 +285,7 @@ function renderChoice() {
 }
 
 function answerChoice(selected, btn) {
-  if (state.isFlipped) return; // ถ้าตอบแล้วไม่ต้องทำอะไร
+  if (state.isFlipped) return; 
   state.isFlipped = true;
   const q = QUESTIONS[state.currentList[state.index]];
   const isCorrect = selected === q.answer;
@@ -331,7 +312,7 @@ function answerChoice(selected, btn) {
 function nextChoiceCard() { state.index++; renderChoice(); }
 
 // =========================================================
-//  Mode 3: Matching (จับคู่ทีละ 4 ข้อ)
+//  Mode 3: Matching
 // =========================================================
 function startMatching(list) {
   state.currentList = list; 
@@ -344,7 +325,6 @@ function startMatching(list) {
 function loadMatchBatch() {
   if (state.index >= state.currentList.length) { showResult(); return; }
   
-  // ดึงมา 4 ข้อ (หรือเท่าที่เหลือ)
   state.matchBatch = state.currentList.slice(state.index, state.index + 4);
   state.matchSelectedLeft = null; 
   state.matchSelectedRight = null;
@@ -357,7 +337,6 @@ function loadMatchBatch() {
   const rightCol = document.getElementById('matchRight');
   leftCol.innerHTML = ''; rightCol.innerHTML = '';
 
-  // สร้างฝั่งซ้าย (คำถาม)
   state.matchBatch.forEach((qIndex, i) => {
     const div = document.createElement('div');
     div.className = 'match-item';
@@ -367,7 +346,6 @@ function loadMatchBatch() {
     leftCol.appendChild(div);
   });
 
-  // สร้างฝั่งขวา (คำตอบ) แบบสลับที่
   const shuffledBatch = shuffle(state.matchBatch);
   shuffledBatch.forEach((qIndex, i) => {
     const div = document.createElement('div');
@@ -381,8 +359,6 @@ function loadMatchBatch() {
 
 function selectMatchItem(side, el) {
   if (el.classList.contains('matched')) return;
-
-  // ยกเลิกการเลือกอันเก่าในฝั่งเดียวกัน
   const parent = side === 'left' ? document.getElementById('matchLeft') : document.getElementById('matchRight');
   parent.querySelectorAll('.match-item').forEach(item => item.classList.remove('selected'));
   el.classList.add('selected');
@@ -390,10 +366,7 @@ function selectMatchItem(side, el) {
   if (side === 'left') state.matchSelectedLeft = el;
   else state.matchSelectedRight = el;
 
-  // ถ้าเลือกครบทั้งสองฝั่ง ให้ตรวจคำตอบ
-  if (state.matchSelectedLeft && state.matchSelectedRight) {
-    checkMatch();
-  }
+  if (state.matchSelectedLeft && state.matchSelectedRight) { checkMatch(); }
 }
 
 function checkMatch() {
@@ -405,29 +378,22 @@ function checkMatch() {
     left.classList.add('matched'); right.classList.add('matched');
     left.classList.remove('selected'); right.classList.remove('selected');
     state.matchCorrectCount++;
-    
-    // เช็กว่าจับคู่ครบ 4 ข้อในชุดนี้หรือยัง
     if (state.matchCorrectCount === state.matchBatch.length) {
       document.getElementById('matchNextBtn').classList.remove('hidden');
       document.getElementById('matchNextBtn').textContent = (state.index + 4 >= state.currentList.length) ? 'ดูผลลัพธ์ 🎉' : 'ชุดถัดไป →';
     }
   } else {
-    // ถ้าผิด ให้กระพริบแดงแล้วยกเลิกการเลือก
     left.style.borderColor = 'red'; right.style.borderColor = 'red';
     setTimeout(() => {
       left.style.borderColor = ''; right.style.borderColor = '';
       left.classList.remove('selected'); right.classList.remove('selected');
     }, 500);
   }
-  
   state.matchSelectedLeft = null;
   state.matchSelectedRight = null;
 }
 
-function nextMatchBatch() {
-  state.index += 4;
-  loadMatchBatch();
-}
+function nextMatchBatch() { state.index += 4; loadMatchBatch(); }
 
 // =========================================================
 //  Results & Global Actions
@@ -435,7 +401,6 @@ function nextMatchBatch() {
 function showResult() {
   showPage('result');
   let text = '';
-  
   if (state.mode === 'matching') {
     text = `จับคู่ทั้งหมด <b>${state.currentList.length}</b> ข้อ<br>`;
   } else {
@@ -451,37 +416,18 @@ function showResult() {
       ${comment}
     `;
   }
-  
   document.getElementById('resultText').innerHTML = text;
 }
 
 function goHome() { renderHome(); }
-
 function resetProgress() {
   if (!confirm('ลบประวัติข้อที่ยังไม่แม่นทั้งหมด?')) return;
   localStorage.removeItem(LS_WEAK);
   renderHome();
 }
+
 // =========================================================
 //  Theme Logic
 // =========================================================
 function changeTheme(themeName) {
-  document.documentElement.setAttribute('data-theme', themeName);
-  localStorage.setItem('fundcom_theme', themeName);
-}
-
-// โหลดธีมที่เคยเลือกไว้ตอนเปิดเว็บ
-function loadTheme() {
-  const savedTheme = localStorage.getItem('fundcom_theme') || 'pastel';
-  document.documentElement.setAttribute('data-theme', savedTheme);
-  document.getElementById('themeSelector').value = savedTheme;
-}
-
-// เรียกใช้ฟังก์ชันโหลดธีมทันที
-loadTheme();
-  
-// =========================================================
-renderHome();
-</script>
-</body>
-</html>
+  document.document
