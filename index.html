@@ -30,6 +30,15 @@
 
 <!-- ========== หน้าแรก ========== -->
 <div id="home">
+    <!-- แถบเลือกธีม -->
+  <div style="text-align: right; margin-bottom: 10px;">
+    <select id="themeSelector" onchange="changeTheme(this.value)" style="padding: 8px; border-radius: 8px; border: 1px solid var(--btn-border); background: var(--btn-bg); color: var(--btn-text); font-family: inherit; font-size: 14px; cursor: pointer;">
+      <option value="pastel">🌸 Pastel (สว่าง)</option>
+      <option value="dark">🌙 Dark (มืด)</option>
+      <option value="ocean">🌊 Ocean (น้ำเงิน)</option>
+      <option value="forest">🌿 Forest (เขียว)</option>
+    </select>
+  </div>
   <h1>📚 FundCom Flashcards</h1>
   <p class="small">ทบทวนข้อสอบ Fundamental of Computer Science</p>
 
@@ -453,7 +462,24 @@ function resetProgress() {
   localStorage.removeItem(LS_WEAK);
   renderHome();
 }
+// =========================================================
+//  Theme Logic
+// =========================================================
+function changeTheme(themeName) {
+  document.documentElement.setAttribute('data-theme', themeName);
+  localStorage.setItem('fundcom_theme', themeName);
+}
 
+// โหลดธีมที่เคยเลือกไว้ตอนเปิดเว็บ
+function loadTheme() {
+  const savedTheme = localStorage.getItem('fundcom_theme') || 'pastel';
+  document.documentElement.setAttribute('data-theme', savedTheme);
+  document.getElementById('themeSelector').value = savedTheme;
+}
+
+// เรียกใช้ฟังก์ชันโหลดธีมทันที
+loadTheme();
+  
 // =========================================================
 renderHome();
 </script>
