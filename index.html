@@ -1,195 +1,275 @@
-* { box-sizing: border-box; }
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FundCom - Flashcards</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
 
-body {
-  font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
-  font-size: 15px;
-  line-height: 1.6;
-  background: #111;
-  color: #e8e8e8;
-  max-width: 720px;
-  margin: 0 auto;
-  padding: 15px;
-  min-height: 100vh;
+<!-- ========== หน้าแรก ========== -->
+<div id="home">
+  <h1>📚 FundCom Flashcards</h1>
+  <p class="small">ทบทวนข้อสอบ Fundamental of Computer Science ด้วยบัตรคำ</p>
+
+  <div class="box" id="homeStats"></div>
+
+  <h2>เลือกหัวข้อเพื่อเริ่มทบทวน</h2>
+  <div id="topicList"></div>
+
+  <hr>
+  <button onclick="startSession('all')">🎲 ทบทวนทุกหัวข้อ</button>
+  <button onclick="startReviewWeak()">🔁 ทบทวนข้อที่ยังไม่แม่น</button>
+  <button onclick="resetProgress()">🗑 รีเซ็ตประวัติทั้งหมด</button>
+</div>
+
+<!-- ========== หน้าเล่น Flashcard ========== -->
+<div id="flashcard" class="hidden">
+  <div class="stats" id="cardProgress"></div>
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+
+  <!-- ตัวการ์ด -->
+  <div class="card-container" onclick="flipCard()">
+    <div class="card-inner" id="cardInner">
+      
+      <!-- ด้านหน้า: คำถาม -->
+      <div class="card-front">
+        <div class="topic-badge" id="cardTopic"></div>
+        <h2 id="questionText"></h2>
+        <p class="small text-center mt-20">👆 กดที่การ์ดเพื่อดูเฉลย</p>
+      </div>
+
+      <!-- ด้านหลัง: เฉลย -->
+      <div class="card-back">
+        <div class="topic-badge" id="cardTopicBack"></div>
+        <h3 class="text-green">✅ คำตอบ:</h3>
+        <p id="answerText" style="font-size: 1.1em; font-weight: bold; margin-bottom: 15px;"></p>
+        
+        <h3 class="text-blue">💡 คำอธิบาย:</h3>
+        <p id="explainText" style="font-size: 0.95em; line-height: 1.5;"></p>
+      </div>
+
+    </div>
+  </div>
+
+  <hr>
+  <!-- ปุ่มควบคุม -->
+  <div id="controls" class="hidden">
+    <button class="btn-wrong" onclick="markCard(false)">❌ ยังไม่แม่น</button>
+    <button class="btn-correct" onclick="markCard(true)">✅ จำได้</button>
+  </div>
+  <button onclick="goHome()">← กลับหน้าแรก</button>
+</div>
+
+<!-- ========== หน้าสรุปผล ========== -->
+<div id="result" class="hidden">
+  <h1>📊 สรุปผลการทบทวน</h1>
+  <div class="box" id="resultText"></div>
+  <button onclick="retry()">🔁 ทบทวนชุดนี้อีกครั้ง</button>
+  <button onclick="goHome()">← กลับหน้าแรก</button>
+</div>
+
+<footer>FundCom Flashcards · ข้อมูลเก็บบนเครื่องคุณ</footer>
+
+<!-- ดึงไฟล์คำถามเดิมมาใช้ -->
+<script src="questions.js"></script>
+<script>
+// =========================================================
+//  State & Storage
+// =========================================================
+const LS_WEAK = 'fundcom_weak_cards'; // เก็บ ID ข้อที่ยังไม่แม่น
+
+let state = {
+  currentList: [], // ลิสต์ ID ของคำถามในรอบนี้
+  index: 0,        // ข้อปัจจุบัน
+  isFlipped: false,
+  weakCards: []    // ข้อที่ตอบผิดในรอบนี้ (เพื่อมาทวนซ้ำ)
+};
+
+function loadWeak() {
+  try { return JSON.parse(localStorage.getItem(LS_WEAK)) || []; }
+  catch(e) { return []; }
 }
+function saveWeak(w) { localStorage.setItem(LS_WEAK, JSON.stringify(w)); }
 
-h1 {
-  font-size: 20px;
-  border-bottom: 1px solid #333;
-  padding-bottom: 8px;
-  margin-top: 0;
+function addWeak(i) {
+  const w = loadWeak();
+  if (!w.includes(i)) { w.push(i); saveWeak(w); }
 }
-
-h2 {
-  font-size: 18px;
-  font-weight: 500;
-  margin: 16px 0 10px;
-}
-
-button {
-  font-family: inherit;
-  font-size: 14px;
-  padding: 10px 16px;
-  margin: 4px 3px 4px 0;
-  background: #222;
-  color: #e8e8e8;
-  border: 1px solid #444;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: background 0.15s;
-}
-button:hover:not(:disabled) { background: #333; }
-button:disabled { opacity: 0.6; cursor: not-allowed; }
-
-.topic-btn {
-  display: block;
-  width: 100%;
-  text-align: left;
-  margin: 8px 0;
-  padding: 12px 16px;
-  font-size: 15px;
-}
-
-.box {
-  border: 1px solid #333;
-  border-radius: 6px;
-  padding: 15px;
-  margin: 15px 0;
-  background: #1a1a1a;
-}
-
-.stats {
-  font-size: 13px;
-  color: #aaa;
-  margin: 10px 0;
-  line-height: 1.8;
-}
-
-hr {
-  border: none;
-  border-top: 1px solid #333;
-  margin: 20px 0;
-}
-
-.hidden { display: none; }
-.small { font-size: 13px; color: #888; }
-.text-center { text-align: center; }
-.mt-20 { margin-top: 20px; }
-.text-green { color: #4caf50; }
-.text-blue { color: #2196f3; }
-
-.progress-bar {
-  height: 6px;
-  background: #222;
-  border-radius: 3px;
-  overflow: hidden;
-  margin: 8px 0 20px;
-}
-.progress-fill {
-  height: 100%;
-  background: #4caf50;
-  transition: width 0.3s;
-}
-
-/* =========================================
-   Flashcard 3D Flip Effect
-========================================= */
-.card-container {
-  perspective: 1000px;
-  width: 100%;
-  min-height: 350px;
-  margin: 20px 0;
-  cursor: pointer;
-}
-
-.card-inner {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  min-height: 350px;
-  transition: transform 0.6s;
-  transform-style: preserve-3d;
+function removeWeak(i) {
+  saveWeak(loadWeak().filter(x => x !== i));
 }
 
-.card-inner.is-flipped {
-  transform: rotateY(180deg);
+// =========================================================
+//  Home
+// =========================================================
+function renderHome() {
+  document.getElementById('home').classList.remove('hidden');
+  document.getElementById('flashcard').classList.add('hidden');
+  document.getElementById('result').classList.add('hidden');
+
+  const weakCount = loadWeak().length;
+  const topics = getAllTopics();
+  
+  let html = `<b>สถานะการทบทวน</b><br>`;
+  html += `📌 ข้อที่ยังไม่แม่น: <b>${weakCount}</b> ข้อ<br>`;
+  html += `📝 บัตรคำทั้งหมด: <b>${QUESTIONS.length}</b> ใบ`;
+  document.getElementById('homeStats').innerHTML = html;
+
+  const topicList = document.getElementById('topicList');
+  topicList.innerHTML = '';
+  topics.forEach(t => {
+    const count = QUESTIONS.filter(q => q.topic === t).length;
+    const btn = document.createElement('button');
+    btn.className = 'topic-btn';
+    btn.innerHTML = `📂 ${t} <span class="small">(${count} ใบ)</span>`;
+    btn.onclick = () => startSession(t);
+    topicList.appendChild(btn);
+  });
 }
 
-.card-front, .card-back {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  min-height: 350px;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-  border-radius: 12px;
-  padding: 25px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  border: 1px solid #333;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+function getAllTopics() {
+  const set = new Set();
+  QUESTIONS.forEach(q => set.add(q.topic));
+  return Array.from(set);
 }
 
-.card-front {
-  background: #1a1a1a;
-  align-items: center;
-  text-align: center;
+// =========================================================
+//  Flashcard Logic
+// =========================================================
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
 }
 
-.card-back {
-  background: #222;
-  transform: rotateY(180deg);
-  justify-content: flex-start;
-  text-align: left;
-  overflow-y: auto;
+function startSession(topic) {
+  let list;
+  if (topic === 'all') {
+    list = QUESTIONS.map((_, i) => i);
+  } else {
+    list = QUESTIONS.map((q, i) => q.topic === topic ? i : -1).filter(i => i >= 0);
+  }
+  startWithList(shuffle(list));
 }
 
-.topic-badge {
-  position: absolute;
-  top: 15px;
-  left: 15px;
-  background: #333;
-  color: #ccc;
-  font-size: 11px;
-  padding: 4px 10px;
-  border-radius: 20px;
-  text-transform: uppercase;
-  letter-spacing: 1px;
+function startReviewWeak() {
+  const weak = loadWeak();
+  if (weak.length === 0) { alert('ยินดีด้วย! คุณจำได้ครบทุกข้อแล้ว 🎉'); return; }
+  startWithList(shuffle(weak));
 }
 
-/* =========================================
-   ปุ่ม จำได้ / ไม่แม่น
-========================================= */
-#controls {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 15px;
+function startWithList(list) {
+  state.currentList = list;
+  state.index = 0;
+  state.weakCards = [];
+  state.isFlipped = false;
+
+  document.getElementById('home').classList.add('hidden');
+  document.getElementById('result').classList.add('hidden');
+  document.getElementById('flashcard').classList.remove('hidden');
+  
+  renderCard();
 }
 
-.btn-wrong, .btn-correct {
-  flex: 1;
-  padding: 14px;
-  font-size: 16px;
-  font-weight: bold;
-  border: none;
-  border-radius: 8px;
-}
-.btn-wrong {
-  background: #3a1a1a;
-  color: #f0b8b8;
-  border: 1px solid #e53935;
-}
-.btn-wrong:hover:not(:disabled) { background: #e53935; color: #fff; }
-.btn-correct {
-  background: #1a3a1a;
-  color: #b8f0b8;
-  border: 1px solid #4caf50;
-}
-.btn-correct:hover:not(:disabled) { background: #4caf50; color: #fff; }
+function renderCard() {
+  if (state.index >= state.currentList.length) {
+    showResult();
+    return;
+  }
 
-footer {
-  margin-top: 40px;
-  font-size: 12px;
-  color: #555;
-  text-align: center;
+  const qIndex = state.currentList[state.index];
+  const q = QUESTIONS[qIndex];
+  
+  // รีเซ็ตการ์ดให้อยู่ด้านหน้า
+  state.isFlipped = false;
+  const cardInner = document.getElementById('cardInner');
+  cardInner.classList.remove('is-flipped');
+  
+  document.getElementById('controls').classList.add('hidden');
+
+  // อัปเดตข้อความ
+  const total = state.currentList.length;
+  document.getElementById('cardProgress').textContent = `ใบที่ ${state.index + 1} / ${total}`;
+  document.getElementById('progressFill').style.width = `${(state.index / total) * 100}%`;
+  
+  document.getElementById('cardTopic').textContent = q.topic;
+  document.getElementById('cardTopicBack').textContent = q.topic;
+  
+  document.getElementById('questionText').textContent = q.q;
+  
+  // หาคำตอบที่ถูก
+  const correctAnswer = q.choices[q.answer];
+  document.getElementById('answerText').textContent = correctAnswer;
+  document.getElementById('explainText').textContent = q.explain;
 }
+
+function flipCard() {
+  if (state.isFlipped) return; // ถ้าพลิกแล้วไม่ต้องทำอะไร
+  state.isFlipped = true;
+  document.getElementById('cardInner').classList.add('is-flipped');
+  
+  // เมื่อพลิกแล้วให้แสดงปุ่ม
+  setTimeout(() => {
+    document.getElementById('controls').classList.remove('hidden');
+  }, 300);
+}
+
+function markCard(isRemembered) {
+  const qIndex = state.currentList[state.index];
+  
+  if (isRemembered) {
+    // ถ้าจำได้ ให้ลบออกจากคลังข้อที่ยังไม่แม่น (ถ้ามี)
+    removeWeak(qIndex);
+  } else {
+    // ถ้ายังไม่แม่น ให้เพิ่มเข้าไป
+    addWeak(qIndex);
+    state.weakCards.push(qIndex);
+  }
+
+  state.index++;
+  renderCard();
+}
+
+function showResult() {
+  document.getElementById('flashcard').classList.add('hidden');
+  document.getElementById('result').classList.remove('hidden');
+  document.getElementById('progressFill').style.width = '100%';
+
+  const total = state.currentList.length;
+  const missed = state.weakCards.length;
+  const correct = total - missed;
+  const pct = Math.round((correct / total) * 100);
+  
+  let comment = pct >= 80 ? '🎉 สุดยอด! คุณแม่นมาก' : pct >= 50 ? '👍 ดีแล้ว ทบทวนอีกนิดนะ' : '📚 ยังต้องฝึกฝนอีกหน่อย สู้ๆ!';
+
+  document.getElementById('resultText').innerHTML = `
+    ทบทวนทั้งหมด <b>${total}</b> ใบ<br>
+    จำได้ <b>${correct}</b> ใบ (${pct}%)<br>
+    ยังไม่แม่น <b>${missed}</b> ใบ<br><br>
+    ${comment}
+  `;
+}
+
+function retry() {
+  // เริ่มใหม่ด้วยลิสต์เดิม (จะรวมข้อที่ตอบผิดด้วย)
+  startWithList(shuffle(state.currentList));
+}
+
+function goHome() { renderHome(); }
+
+function resetProgress() {
+  if (!confirm('ลบประวัติข้อที่ยังไม่แม่นทั้งหมด?')) return;
+  localStorage.removeItem(LS_WEAK);
+  renderHome();
+}
+
+// =========================================================
+renderHome();
+</script>
+</body>
+</html>
