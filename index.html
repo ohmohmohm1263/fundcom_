@@ -55,7 +55,8 @@
 
   <hr>
   <!-- ปุ่มควบคุม -->
-  <div id="controls" class="hidden">
+  <div id="controls" class="hidden"> 
+    <button onclick="prevCard()" style="width: 100%; margin-bottom: 10px;">← ข้อก่อนหน้า</button>
     <button class="btn-wrong" onclick="markCard(false)">❌ ยังไม่แม่น</button>
     <button class="btn-correct" onclick="markCard(true)">✅ จำได้</button>
   </div>
@@ -138,6 +139,31 @@ function getAllTopics() {
 // =========================================================
 //  Flashcard Logic
 // =========================================================
+function flipCard() {
+  // สลับสถานะ ถ้าพลิกอยู่ให้กลับด้าน ถ้ายังไม่พลิกให้พลิก
+  state.isFlipped = !state.isFlipped;
+  const cardInner = document.getElementById('cardInner');
+  
+  if (state.isFlipped) {
+    cardInner.classList.add('is-flipped');
+    // เมื่อพลิกแล้วให้แสดงปุ่ม
+    setTimeout(() => {
+      document.getElementById('controls').classList.remove('hidden');
+    }, 300);
+  } else {
+    cardInner.classList.remove('is-flipped');
+  }
+}
+  
+function prevCard() {
+  if (state.index > 0) {
+    state.index--;
+    renderCard();
+  } else {
+    alert('นี่คือข้อแรกสุดแล้วครับ');
+  }
+}
+
 function shuffle(arr) {
   const a = arr.slice();
   for (let i = a.length - 1; i > 0; i--) {
