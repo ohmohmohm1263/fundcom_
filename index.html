@@ -75,7 +75,201 @@
 <!-- ดึงไฟล์คำถามเดิมมาใช้ -->
 <script src="questions.js"></script>
 <script>
-// ... (ก๊อปปี้โค้ด JavaScript ทั้งหมดที่อยู่ในแท็ก <script> จากข้อความก่อนหน้ามาวางตรงนี้ครับ) ...
+// =========================================================
+//  State & Storage
+// =========================================================
+const LS_WEAK = 'fundcom_weak_cards'; // เก็บ ID ข้อที่ยังไม่แม่น
+
+let state = {
+  currentList: [], // ลิสต์ ID ของคำถามในรอบนี้
+  index: 0,        // ข้อปัจจุบัน
+  isFlipped: false,
+  weakCards: []    // ข้อที่ตอบผิดในรอบนี้ (เพื่อมาทวนซ้ำ)
+};
+
+function loadWeak() {
+  try { return JSON.parse(localStorage.getItem(LS_WEAK)) || []; }
+  catch(e) { return []; }
+}
+function saveWeak(w) { localStorage.setItem(LS_WEAK, JSON.stringify(w)); }
+
+function addWeak(i) {
+  const w = loadWeak();
+  if (!w.includes(i)) { w.push(i); saveWeak(w); }
+}
+function removeWeak(i) {
+  saveWeak(loadWeak().filter(x => x !== i));
+}
+
+// =========================================================
+//  Home
+// =========================================================
+function renderHome() {
+  document.getElementById('home').classList.remove('hidden');
+  document.getElementById('flashcard').classList.add('hidden');
+  document.getElementById('result').classList.add('hidden');
+
+  const weakCount = loadWeak().length;
+  const topics = getAllTopics();
+  
+  let html = `<b>สถานะการทบทวน</b><br>`;
+  html += `📌 ข้อที่ยังไม่แม่น: <b>${weakCount}</b> ข้อ<br>`;
+  html += `📝 บัตรคำทั้งหมด: <b>${QUESTIONS.length}</b> ใบ`;
+  document.getElementById('homeStats').innerHTML = html;
+
+  const topicList = document.getElementById('topicList');
+  topicList.innerHTML = '';
+  topics.forEach(t => {
+    const count = QUESTIONS.filter(q => q.topic === t).length;
+    const btn = document.createElement('button');
+    btn.className = 'topic-btn';
+    btn.innerHTML = `📂 ${t} <span class="small">(${count} ใบ)</span>`;
+    btn.onclick = () => startSession(t);
+    topicList.appendChild(btn);
+  });
+}
+
+function getAllTopics() {
+  const set = new Set();
+  QUESTIONS.forEach(q => set.add(q.topic));
+  return Array.from(set);
+}
+
+// =========================================================
+//  Flashcard Logic
+// =========================================================
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function startSession(topic) {
+  let list;
+  if (topic === 'all') {
+    list = QUESTIONS.map((_, i) => i);
+  } else {
+    list = QUESTIONS.map((q, i) => q.topic === topic ? i : -1).filter(i => i >= 0);
+  }
+  startWithList(shuffle(list));
+}
+
+function startReviewWeak() {
+  const weak = loadWeak();
+  if (weak.length === 0) { alert('ยินดีด้วย! คุณจำได้ครบทุกข้อแล้ว 🎉'); return; }
+  startWithList(shuffle(weak));
+}
+
+function startWithList(list) {
+  state.currentList = list;
+  state.index = 0;
+  state.weakCards = [];
+  state.isFlipped = false;
+
+  document.getElementById('home').classList.add('hidden');
+  document.getElementById('result').classList.add('hidden');
+  document.getElementById('flashcard').classList.remove('hidden');
+  
+  renderCard();
+}
+
+function renderCard() {
+  if (state.index >= state.currentList.length) {
+    showResult();
+    return;
+  }
+
+  const qIndex = state.currentList[state.index];
+  const q = QUESTIONS[qIndex];
+  
+  // รีเซ็ตการ์ดให้อยู่ด้านหน้า
+  state.isFlipped = false;
+  const cardInner = document.getElementById('cardInner');
+  cardInner.classList.remove('is-flipped');
+  
+  document.getElementById('controls').classList.add('hidden');
+
+  // อัปเดตข้อความ
+  const total = state.currentList.length;
+  document.getElementById('cardProgress').textContent = `ใบที่ ${state.index + 1} / ${total}`;
+  document.getElementById('progressFill').style.width = `${(state.index / total) * 100}%`;
+  
+  document.getElementById('cardTopic').textContent = q.topic;
+  document.getElementById('cardTopicBack').textContent = q.topic;
+  
+  document.getElementById('questionText').textContent = q.q;
+  
+  // หาคำตอบที่ถูก
+  const correctAnswer = q.choices[q.answer];
+  document.getElementById('answerText').textContent = correctAnswer;
+  document.getElementById('explainText').textContent = q.explain;
+}
+
+function flipCard() {
+  if (state.isFlipped) return; // ถ้าพลิกแล้วไม่ต้องทำอะไร
+  state.isFlipped = true;
+  document.getElementById('cardInner').classList.add('is-flipped');
+  
+  // เมื่อพลิกแล้วให้แสดงปุ่ม
+  setTimeout(() => {
+    document.getElementById('controls').classList.remove('hidden');
+  }, 300);
+}
+
+function markCard(isRemembered) {
+  const qIndex = state.currentList[state.index];
+  
+  if (isRemembered) {
+    // ถ้าจำได้ ให้ลบออกจากคลังข้อที่ยังไม่แม่น (ถ้ามี)
+    removeWeak(qIndex);
+  } else {
+    // ถ้ายังไม่แม่น ให้เพิ่มเข้าไป
+    addWeak(qIndex);
+    state.weakCards.push(qIndex);
+  }
+
+  state.index++;
+  renderCard();
+}
+
+function showResult() {
+  document.getElementById('flashcard').classList.add('hidden');
+  document.getElementById('result').classList.remove('hidden');
+  document.getElementById('progressFill').style.width = '100%';
+
+  const total = state.currentList.length;
+  const missed = state.weakCards.length;
+  const correct = total - missed;
+  const pct = Math.round((correct / total) * 100);
+  
+  let comment = pct >= 80 ? '🎉 สุดยอด! คุณแม่นมาก' : pct >= 50 ? '👍 ดีแล้ว ทบทวนอีกนิดนะ' : '📚 ยังต้องฝึกฝนอีกหน่อย สู้ๆ!';
+
+  document.getElementById('resultText').innerHTML = `
+    ทบทวนทั้งหมด <b>${total}</b> ใบ<br>
+    จำได้ <b>${correct}</b> ใบ (${pct}%)<br>
+    ยังไม่แม่น <b>${missed}</b> ใบ<br><br>
+    ${comment}
+  `;
+}
+
+function retry() {
+  // เริ่มใหม่ด้วยลิสต์เดิม (จะรวมข้อที่ตอบผิดด้วย)
+  startWithList(shuffle(state.currentList));
+}
+
+function goHome() { renderHome(); }
+
+function resetProgress() {
+  if (!confirm('ลบประวัติข้อที่ยังไม่แม่นทั้งหมด?')) return;
+  localStorage.removeItem(LS_WEAK);
+  renderHome();
+}
+
+// =========================================================
+renderHome();
 </script>
 </body>
 </html>
