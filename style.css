@@ -193,3 +193,16 @@ footer {
   color: #555;
   text-align: center;
 }
+/* =========================================
+   ปรับแต่งปุ่มย้อนกลับ
+========================================= */
+#controls button[onclick="prevCard()"] {
+  background: #333;
+  color: #fff;
+  border: 1px solid #555;
+  border-radius: 8px;
+  font-weight: bold;
+}
+#controls button[onclick="prevCard()"]:hover {
+  background: #444;
+}
