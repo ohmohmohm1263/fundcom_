@@ -55,12 +55,14 @@
 
   <hr>
   <!-- ปุ่มควบคุม -->
-  <div id="controls" class="hidden"> 
-    <button onclick="prevCard()" style="width: 100%; margin-bottom: 10px;">← ข้อก่อนหน้า</button>
-    <button class="btn-wrong" onclick="markCard(false)">❌ ยังไม่แม่น</button>
-    <button class="btn-correct" onclick="markCard(true)">✅ จำได้</button>
+  <div id="controls" class="hidden">
+    <button onclick="prevCard()" style="width: 100%; margin-bottom: 10px; background: #333; color: #fff; border: 1px solid #555; font-weight: bold;">← ข้อก่อนหน้า</button>
+    <div style="display: flex; gap: 10px;">
+      <button class="btn-wrong" onclick="markCard(false)" style="flex: 1;">❌ ยังไม่แม่น</button>
+      <button class="btn-correct" onclick="markCard(true)" style="flex: 1;">✅ จำได้</button>
+    </div>
   </div>
-  <button onclick="goHome()">← กลับหน้าแรก</button>
+  <button onclick="goHome()" style="margin-top: 15px;">← กลับหน้าแรก</button>
 </div>
 
 <!-- ========== หน้าสรุปผล ========== -->
@@ -79,13 +81,13 @@
 // =========================================================
 //  State & Storage
 // =========================================================
-const LS_WEAK = 'fundcom_weak_cards'; // เก็บ ID ข้อที่ยังไม่แม่น
+const LS_WEAK = 'fundcom_weak_cards';
 
 let state = {
-  currentList: [], // ลิสต์ ID ของคำถามในรอบนี้
-  index: 0,        // ข้อปัจจุบัน
+  currentList: [],
+  index: 0,
   isFlipped: false,
-  weakCards: []    // ข้อที่ตอบผิดในรอบนี้ (เพื่อมาทวนซ้ำ)
+  weakCards: []
 };
 
 function loadWeak() {
@@ -139,31 +141,6 @@ function getAllTopics() {
 // =========================================================
 //  Flashcard Logic
 // =========================================================
-function flipCard() {
-  // สลับสถานะ ถ้าพลิกอยู่ให้กลับด้าน ถ้ายังไม่พลิกให้พลิก
-  state.isFlipped = !state.isFlipped;
-  const cardInner = document.getElementById('cardInner');
-  
-  if (state.isFlipped) {
-    cardInner.classList.add('is-flipped');
-    // เมื่อพลิกแล้วให้แสดงปุ่ม
-    setTimeout(() => {
-      document.getElementById('controls').classList.remove('hidden');
-    }, 300);
-  } else {
-    cardInner.classList.remove('is-flipped');
-  }
-}
-  
-function prevCard() {
-  if (state.index > 0) {
-    state.index--;
-    renderCard();
-  } else {
-    alert('นี่คือข้อแรกสุดแล้วครับ');
-  }
-}
-
 function shuffle(arr) {
   const a = arr.slice();
   for (let i = a.length - 1; i > 0; i--) {
@@ -235,30 +212,41 @@ function renderCard() {
 }
 
 function flipCard() {
-  if (state.isFlipped) return; // ถ้าพลิกแล้วไม่ต้องทำอะไร
-  state.isFlipped = true;
-  document.getElementById('cardInner').classList.add('is-flipped');
+  // สลับสถานะ ถ้าพลิกอยู่ให้กลับด้าน ถ้ายังไม่พลิกให้พลิก
+  state.isFlipped = !state.isFlipped;
+  const cardInner = document.getElementById('cardInner');
   
-  // เมื่อพลิกแล้วให้แสดงปุ่ม
-  setTimeout(() => {
-    document.getElementById('controls').classList.remove('hidden');
-  }, 300);
+  if (state.isFlipped) {
+    cardInner.classList.add('is-flipped');
+    setTimeout(() => {
+      document.getElementById('controls').classList.remove('hidden');
+    }, 300);
+  } else {
+    cardInner.classList.remove('is-flipped');
+  }
 }
 
 function markCard(isRemembered) {
   const qIndex = state.currentList[state.index];
   
   if (isRemembered) {
-    // ถ้าจำได้ ให้ลบออกจากคลังข้อที่ยังไม่แม่น (ถ้ามี)
     removeWeak(qIndex);
   } else {
-    // ถ้ายังไม่แม่น ให้เพิ่มเข้าไป
     addWeak(qIndex);
     state.weakCards.push(qIndex);
   }
 
   state.index++;
   renderCard();
+}
+
+function prevCard() {
+  if (state.index > 0) {
+    state.index--;
+    renderCard();
+  } else {
+    alert('นี่คือข้อแรกสุดแล้วครับ');
+  }
 }
 
 function showResult() {
@@ -282,7 +270,6 @@ function showResult() {
 }
 
 function retry() {
-  // เริ่มใหม่ด้วยลิสต์เดิม (จะรวมข้อที่ตอบผิดด้วย)
   startWithList(shuffle(state.currentList));
 }
 
